@@ -1,7 +1,8 @@
 {
   "dependencies": [
+    "spdlog",
     "unicorn",
     "zydis",
-    "spdlog"
+    "argparse"
   ]
 }

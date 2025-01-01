@@ -182,10 +182,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="emulator\emulator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="emulator\emulator.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
