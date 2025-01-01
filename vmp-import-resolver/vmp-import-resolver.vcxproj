@@ -182,11 +182,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="arg_parser.cpp" />
     <ClCompile Include="emulator\emulator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="arg_parser.hpp" />
     <ClInclude Include="emulator\emulator.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
   </ItemGroup>

@@ -1,11 +1,28 @@
 #include <cstdint>
 #include <iostream>
 
+#define FMT_UNICODE 0
+#include <spdlog/spdlog.h>
+
+#include "arg_parser.hpp"
 #include "win_process/win_process.hpp"
 
-std::int32_t main(std::int32_t argc, const char** argv)
+std::int32_t main(const std::int32_t argc, const char** argv)
 {
-	win_process_t win_process(8716);
+	arg_parser::context_t context;
+
+	try
+	{
+		context = arg_parser::parse(argc, argv);
+	}
+	catch (std::runtime_error& error)
+	{
+		spdlog::error("failed to parse arguments with error: {}", error.what());
+
+		return EXIT_FAILURE;
+	}
+
+	win_process_t win_process(context.process_id);
 
 	if (!win_process.attach())
 	{
@@ -26,5 +43,5 @@ std::int32_t main(std::int32_t argc, const char** argv)
 		std::cout << modules.error() << '\n';
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

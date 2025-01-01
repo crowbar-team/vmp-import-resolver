@@ -24,12 +24,18 @@
     <ClCompile Include="emulator\emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="arg_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="win_process\win_process.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="emulator\emulator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arg_parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
