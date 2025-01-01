@@ -6,29 +6,23 @@ arg_parser::context_t arg_parser::parse(const std::int32_t argc, const char** ar
 {
 	argparse::ArgumentParser program("vmp-import-resolver - crowbar.team");
 
+    context_t context = { };
+
     program.add_argument("-p", "--process_id")
-        .required()
-        .implicit_value(false)
+        .required().store_into(context.process_id)
         .help("process id");
 
     program.add_argument("-m", "--module_name")
-        .required()
-        .implicit_value(false)
+        .required().store_into(context.module_name)
         .help("name of module");
 
     program.add_argument("-s", "--sections")
         .required()
-        .implicit_value(false)
-        .help("VMProtect sections")
-        .nargs(argparse::nargs_pattern::at_least_one);
+        .nargs(argparse::nargs_pattern::at_least_one)
+		.store_into(context.vmp_sections)
+        .help("VMProtect sections");
 
     program.parse_args(argc, argv);
-
-    context_t context = { };
-
-    context.process_id = program.get<std::uint32_t>("--process_id");
-    context.module_name = program.get<std::string>("--module_name");
-    context.vmp_sections = program.get<std::vector<std::string>>("--sections");
 
     return context;
 }
