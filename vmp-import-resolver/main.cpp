@@ -55,9 +55,26 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 	const auto& image = file.image();
 
+	bool is_x64;
+
+	switch (const portable_executable::machine_id_t machine_id = image->nt_headers()->file_header.machine)
+	{
+		case portable_executable::machine_id_t::amd64:
+			is_x64 = true;
+			break;
+
+		case portable_executable::machine_id_t::i386:
+			is_x64 = false;
+			break;
+
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
+			spdlog::error("invalid machine id. this software only supports x86 and x86_64 portable executables!");
+			return EXIT_FAILURE;
+	}
+
 	try
 	{
-		vmp::construct_context(true);
+		vmp::construct_context(is_x64);
 
 		vmp::compute_sections(secs, module->address, image);
 	}
