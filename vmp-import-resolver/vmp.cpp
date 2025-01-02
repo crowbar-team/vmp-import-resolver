@@ -2,11 +2,23 @@
 
 #include <format>
 #include <stdexcept>
+#include <stack>
 
 #define FMT_UNICODE 0
 #include <spdlog/spdlog.h>
 
-static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::uint32_t size, void* user_data)
+struct import_stub_data_t
+{
+	std::uintptr_t real_import_address;
+	std::uintptr_t address_calling_import;
+};
+
+struct user_data_t
+{
+	std::stack<import_stub_data_t> stubs_needed;
+};
+
+static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::uint32_t size, user_data_t* user_data)
 {
 	std::uint8_t instruction_buffer[ZYDIS_MAX_INSTRUCTION_LENGTH] = { };
 
@@ -43,11 +55,11 @@ static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::ui
 		{
 			vmp::context->emulator->stop();
 
-			std::uintptr_t import_address = *static_cast<std::uintptr_t*>(user_data);
+			import_stub_data_t& stub_data = user_data->stubs_needed.top();
 
-			std::uintptr_t fallback_address = vmp::context->emulator->read_stack(8);
+			stub_data.real_import_address = return_address;
 
-			spdlog::info("resolved import at 0x{:X} to 0x{:X}, fallback to 0x{:X}", import_address, return_address, fallback_address);
+			spdlog::info("resolved import at 0x{:X} to 0x{:X}, fallback to 0x{:X}", stub_data.address_calling_import, return_address, vmp::context->emulator->read_stack(8));
 		}
 	}
 }
@@ -88,16 +100,18 @@ void vmp::map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<s
 
 void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
 {
-	std::uintptr_t import_address = 0;
+	user_data_t user_data = { };
 
-	context->emulator->add_hook(UC_HOOK_CODE, &import_address, reinterpret_cast<void*>(code_hook));
+	context->emulator->add_hook(UC_HOOK_CODE, &user_data, reinterpret_cast<void*>(code_hook));
 
 	for (const auto& import_call : import_calls)
 	{
-		import_address = import_call;
+		user_data.stubs_needed.push({ .real_import_address = import_call });
 
 		spdlog::info("starting emulation for possible import call at 0x{0:X}...", import_call);
 
 		context->emulator->start(import_call);
 	}
+
+	// todo: process user_data.stubs_needed and apply them
 }
