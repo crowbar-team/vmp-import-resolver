@@ -27,5 +27,5 @@ namespace vmp
 
 	void map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<std::uint8_t>>>& sections);
 
-	void process_import_calls(const std::vector<std::uintptr_t>& import_calls);
+	void process_import_calls(const std::vector<std::uintptr_t>& import_calls, std::uintptr_t module_base, std::vector<std::uint8_t> dumped_binary);
 }

@@ -98,7 +98,7 @@ void vmp::map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<s
 	}
 }
 
-void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
+void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls, std::uintptr_t module_base, std::vector<std::uint8_t> dumped_binary)
 {
 	user_data_t user_data = { };
 
@@ -113,5 +113,14 @@ void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
 		context->emulator->start(import_call);
 	}
 
-	// todo: process user_data.stubs_needed and apply them
+	while (user_data.stubs_needed.empty() == false)
+	{
+		import_stub_data_t& stub_data = user_data.stubs_needed.top();
+
+		// call stub at address_calling_import
+		// stub must call real_import_address
+		// and fix up stack misalignment
+
+		user_data.stubs_needed.pop();
+	}
 }

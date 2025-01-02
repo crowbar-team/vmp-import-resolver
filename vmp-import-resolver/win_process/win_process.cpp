@@ -1,4 +1,5 @@
 #include "win_process.hpp"
+#include "../portable_executable/image.hpp"
 #include "../transform.hpp"
 
 #include <Windows.h>
@@ -35,6 +36,33 @@ bool win_process_t::read(const std::uintptr_t address, void* buffer, const std::
 bool win_process_t::write(const std::uintptr_t address, const void* buffer, const std::size_t size) const
 {
 	return WriteProcessMemory(this->m_handle, reinterpret_cast<void*>(address), buffer, size, nullptr);
+}
+
+std::vector<std::uint8_t> win_process_t::dump(std::string_view module_name) const
+{
+	const auto& module = this->find_module(module_name);
+
+	if (!module)
+	{
+		return { };
+	}
+
+	std::vector<std::uint8_t> dumped_module_bytes(module->size);
+
+	if (!this->read(module->address, dumped_module_bytes.data(), dumped_module_bytes.size()))
+	{
+		return { };
+	}
+
+	portable_executable::image_t* dumped_image = reinterpret_cast<portable_executable::image_t*>(dumped_module_bytes.data());
+
+	for (auto& section : dumped_image->sections())
+	{
+		section.pointer_to_raw_data = section.virtual_address;
+		section.size_of_raw_data = section.virtual_size;
+	}
+
+	return dumped_module_bytes;
 }
 
 std::expected<std::vector<win_process_t::win_module_t>, std::uint32_t> win_process_t::modules() const
