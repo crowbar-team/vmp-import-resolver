@@ -11,10 +11,13 @@
 #include "portable_executable/image.hpp"
 
 #include "vmp.hpp"
+#include "vmp_utilities.hpp"
 
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& context = arg_parser::parse(argc, argv);
+
+	const std::vector<std::string> secs = { ".y M", ".BQ+", ".'RV" };
 
 	if (!context)
 	{
@@ -52,11 +55,11 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 	const auto& image = file.image();
 
-	emulator_t emulator(UC_ARCH_X86, UC_MODE_64);
-
 	try
 	{
-		emulator.initialize();
+		vmp::construct_context(true);
+
+		vmp::compute_sections(secs, module->address, image);
 	}
 	catch (std::runtime_error& error)
 	{
@@ -65,28 +68,8 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		return EXIT_FAILURE;
 	}
 
-	// cache base address and size of vmp sections in order to check if calls lead into there
-	std::vector<std::pair<std::uintptr_t, std::size_t>> vmp_sections = { };
+	std::vector<std::pair<std::uintptr_t, std::vector<std::uint8_t>>> map_sections = { };
 
-	{
-		for (const auto& vmp_section : context->vmp_sections)
-		{
-			const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
-
-			if (!section_header)
-			{
-				spdlog::error("failed to find section {}", vmp_section);
-
-				return EXIT_FAILURE;
-			}
-
-			const std::uintptr_t address = module->address + section_header->virtual_address;
-
-			vmp_sections.emplace_back(address, section_header->virtual_size);
-		}
-	}
-
-	// scan for possible import calls into vmp sections and map .text into emulator
 	std::vector<std::uintptr_t> import_calls = { };
 
 	{
@@ -110,22 +93,12 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			return EXIT_FAILURE;
 		}
 
-		import_calls = vmp::scan_import_calls(address, temp_buffer, vmp_sections);
+		import_calls = vmp_utilities::scan_import_calls(address, temp_buffer);
 
-		try
-		{
-			emulator.map_memory(address, temp_buffer.data(), temp_buffer.size());
-		}
-		catch (std::runtime_error& error)
-		{
-			spdlog::error(error.what());
-
-			return EXIT_FAILURE;
-		}
+		map_sections.emplace_back(address, temp_buffer);
 	}
 
-	// map vmp sections into emulator
-	for (const auto& vmp_section : context->vmp_sections)
+	for (const auto& vmp_section : secs)
 	{
 		const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
 
@@ -147,37 +120,19 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			return EXIT_FAILURE;
 		}
 
-		try
-		{
-			emulator.map_memory(address, temp_buffer.data(), temp_buffer.size());
-		}
-		catch (std::runtime_error& error)
-		{
-			spdlog::error(error.what());
-
-			return EXIT_FAILURE;
-		}
+		map_sections.emplace_back(address, temp_buffer);
 	}
-
-	const auto code_hook = +[](uc_engine* uc, uint64_t address, uint32_t size, void* user_data)
-	{
-
-	};
 
 	try
 	{
-		emulator.add_hook(UC_HOOK_CODE, code_hook);
+		vmp::map_sections(map_sections);
+		vmp::process_import_calls(import_calls);
 	}
 	catch (std::runtime_error& error)
 	{
 		spdlog::error(error.what());
 
 		return EXIT_FAILURE;
-	}
-
-	for (const auto& import_call : import_calls)
-	{
-		spdlog::info("found possible import call at 0x{0:X}. starting emulation...", import_call);
 	}
 
 	return EXIT_SUCCESS;

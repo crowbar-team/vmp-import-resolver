@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstddef>
+
 #include <Zydis/Zydis.h>
 
 namespace x86
@@ -20,7 +21,7 @@ namespace x86
             [[nodiscard]] std::uintptr_t absolute_address() const;
         };
 
-        bool initialize();
+        explicit disassembler_t(ZydisMachineMode machine_mode, ZydisStackWidth stack_width);
 
         bool decode(std::uintptr_t runtime_address, const void* buffer, std::size_t length, instruction_t& instruction) const;
     };

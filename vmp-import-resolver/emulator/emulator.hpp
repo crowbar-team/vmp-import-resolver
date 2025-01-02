@@ -16,6 +16,8 @@ class emulator_t
 
 	std::vector<uc_hook> m_hooks;
 
+	std::uintptr_t m_stack_end = 0;
+
 	void terminate() const;
 
 public:
@@ -23,15 +25,15 @@ public:
 
 	~emulator_t();
 
-	void initialize();
-
 	void map_memory(std::uintptr_t address, const void* buffer, std::size_t size) const;
 
-	void add_hook(uc_hook_type hook_type, void* callback_fn);
+	void add_hook(uc_hook_type hook_type, void* user_data, void* callback_fn);
 
 	void start(std::uintptr_t address) const;
 
 	void stop() const;
 
 	[[nodiscard]] std::uintptr_t stack_pointer() const;
+
+	[[nodiscard]] std::uintptr_t return_address() const;
 };

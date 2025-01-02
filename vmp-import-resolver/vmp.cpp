@@ -1,48 +1,100 @@
 #include "vmp.hpp"
-#include "x86/disassembler.hpp"
-#include "signature_scanner.hpp"
 
-std::vector<std::uintptr_t> vmp::scan_import_calls(std::uintptr_t text_base, const std::vector<std::uint8_t>& text_section, const std::vector<std::pair<std::uintptr_t, std::size_t>>& vmp_sections)
+#include <format>
+#include <stdexcept>
+
+#define FMT_UNICODE 0
+#include <spdlog/spdlog.h>
+
+static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::uint32_t size, void* user_data)
 {
-	x86::disassembler_t disassembler;
+	std::uint8_t instruction_buffer[ZYDIS_MAX_INSTRUCTION_LENGTH] = { };
 
-	if (!disassembler.initialize())
+	if (const uc_err err = uc_mem_read(uc, address, instruction_buffer, size);
+		err != UC_ERR_OK)
 	{
-		return { };
+		return;
 	}
 
-	std::vector<std::uintptr_t> import_calls = { };
+	x86::disassembler_t::instruction_t instruction = { };
 
-	const std::vector<std::uint8_t> call_sig = { 0xE8, 0x00, 0x00, 0x00, 0x00 };
-
-	signature_scanner::buffer(text_section.data(), text_section.size(), call_sig, [&vmp_sections, &disassembler, &text_base, &import_calls](const std::size_t offset, const std::uint8_t* address) -> void
+	if (!vmp::context->disassembler->decode(address, instruction_buffer, size, instruction))
 	{
-		std::uintptr_t call_address = text_base + offset;
+		return;
+	}
 
-		x86::disassembler_t::instruction_t instruction = { };
+	if (instruction.info.mnemonic == ZYDIS_MNEMONIC_RET)
+	{
+		const std::uintptr_t return_address = vmp::context->emulator->return_address();
 
-		if (!disassembler.decode(call_address, address, ZYDIS_MAX_INSTRUCTION_LENGTH, instruction))
+		bool leads_into_vmp_section = false;
+
+		for (const auto& [vmp_section_address, vmp_section_size] : vmp::context->sections)
 		{
-			return;
-		}
-
-		const std::uintptr_t target_address = instruction.absolute_address();
-
-		if (!target_address)
-		{
-			return;
-		}
-
-		for (const auto& [vmp_section_address, vmp_section_size] : vmp_sections)
-		{
-			if (target_address >= vmp_section_address && target_address <= vmp_section_address + vmp_section_size)
+			if (return_address >= vmp_section_address && return_address <= vmp_section_address + vmp_section_size)
 			{
-				import_calls.emplace_back(call_address);
+				leads_into_vmp_section = true;
 
 				break;
 			}
 		}
-	});
 
-	return import_calls;
+		if (!leads_into_vmp_section)
+		{
+			vmp::context->emulator->stop();
+
+			std::uintptr_t import_address = *static_cast<std::uintptr_t*>(user_data);
+
+			spdlog::info("resolved import at 0x{:X} to 0x{:X}", import_address, return_address);
+		}
+	}
+}
+
+void vmp::construct_context(const bool is_x64)
+{
+    context = std::make_unique<context_t>();
+
+    context->disassembler = std::make_unique<x86::disassembler_t>(is_x64 ? ZYDIS_MACHINE_MODE_LONG_64 : ZYDIS_MACHINE_MODE_LONG_COMPAT_32, is_x64 ? ZYDIS_STACK_WIDTH_64 : ZYDIS_STACK_WIDTH_32);
+    context->emulator = std::make_unique<emulator_t>(UC_ARCH_X86, is_x64 ? UC_MODE_64 : UC_MODE_32);
+}
+
+void vmp::compute_sections(const std::vector<std::string>& vmp_sections, const std::uintptr_t module_base, const portable_executable::image_t* image)
+{
+	for (const auto& vmp_section : vmp_sections)
+	{
+		const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
+
+		if (!section_header)
+		{
+			throw std::runtime_error(std::format("failed to find section {}", vmp_section));
+		}
+
+		const std::uintptr_t address = module_base + section_header->virtual_address;
+
+		context->sections.emplace_back(address, section_header->virtual_size);
+	}
+}
+
+void vmp::map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<std::uint8_t>>>& sections)
+{
+	for (const auto& [address, buffer] : sections)
+	{
+		context->emulator->map_memory(address, buffer.data(), buffer.size());
+	}
+}
+
+void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
+{
+	std::uintptr_t import_address = 0;
+
+	context->emulator->add_hook(UC_HOOK_CODE, &import_address, reinterpret_cast<void*>(code_hook));
+
+	for (const auto& import_call : import_calls)
+	{
+		import_address = import_call;
+
+		spdlog::info("starting emulation for possible import call at 0x{0:X}...", import_call);
+
+		context->emulator->start(import_call);
+	}
 }

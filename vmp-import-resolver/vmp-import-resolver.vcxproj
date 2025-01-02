@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <StringPooling>true</StringPooling>
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <StringPooling>true</StringPooling>
@@ -197,6 +197,7 @@
     <ClCompile Include="signature_scanner.cpp" />
     <ClCompile Include="transform.cpp" />
     <ClCompile Include="vmp.cpp" />
+    <ClCompile Include="vmp_utilities.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
     <ClCompile Include="x86\disassembler.cpp" />
   </ItemGroup>
@@ -217,6 +218,7 @@
     <ClInclude Include="signature_scanner.hpp" />
     <ClInclude Include="transform.hpp" />
     <ClInclude Include="vmp.hpp" />
+    <ClInclude Include="vmp_utilities.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
     <ClInclude Include="x86\disassembler.hpp" />
   </ItemGroup>

@@ -18,16 +18,6 @@ void emulator_t::terminate() const
 
 emulator_t::emulator_t(const uc_arch arch, const uc_mode mode) : m_arch(arch), m_mode(mode), m_rsp_reg(m_mode == UC_MODE_64 ? UC_X86_REG_RSP : UC_X86_REG_ESP)
 {
-
-}
-
-emulator_t::~emulator_t()
-{
-	this->terminate();
-}
-
-void emulator_t::initialize()
-{
 	uc_err err = uc_open(this->m_arch, this->m_mode, &this->m_engine);
 
 	if (err != UC_ERR_OK)
@@ -38,7 +28,7 @@ void emulator_t::initialize()
 	constexpr std::uintptr_t stack_base = 0x40000ull;
 	constexpr std::size_t stack_size = 0x10000;
 
-	constexpr std::uintptr_t stack_end = stack_base + stack_size - 64;
+	this->m_stack_end = stack_base + stack_size - 64;
 
 	err = uc_mem_map(this->m_engine, stack_base, stack_size, UC_PROT_READ | UC_PROT_WRITE);
 
@@ -47,12 +37,17 @@ void emulator_t::initialize()
 		throw std::runtime_error(std::format("failed to setup virtual stack! error: {}", uc_strerror(err)));
 	}
 
-	err = uc_reg_write(this->m_engine, this->m_rsp_reg, &stack_end);
+	err = uc_reg_write(this->m_engine, this->m_rsp_reg, &this->m_stack_end);
 
 	if (err != UC_ERR_OK)
 	{
 		throw std::runtime_error(std::format("failed to write virtual stack address to stack pointer! error: {}", uc_strerror(err)));
 	}
+}
+
+emulator_t::~emulator_t()
+{
+	this->terminate();
 }
 
 void emulator_t::map_memory(const std::uintptr_t address, const void* buffer, const std::size_t size) const
@@ -61,7 +56,7 @@ void emulator_t::map_memory(const std::uintptr_t address, const void* buffer, co
 	{
 		constexpr size_t alignment = 0x1000;
 
-		return (value + alignment - 1) & ~(alignment - 1);
+		return value + alignment - 1 & ~(alignment - 1);
 	};
 
 	uc_err err = uc_mem_map(this->m_engine, address, uc_align(size), UC_PROT_ALL);
@@ -79,11 +74,11 @@ void emulator_t::map_memory(const std::uintptr_t address, const void* buffer, co
 	}
 }
 
-void emulator_t::add_hook(const uc_hook_type hook_type, void* callback_fn)
+void emulator_t::add_hook(const uc_hook_type hook_type, void* user_data, void* callback_fn)
 {
 	uc_hook hook = 0;
 
-	if (const uc_err err = uc_hook_add(this->m_engine, &hook, hook_type, callback_fn, nullptr, 1, 0); err != UC_ERR_OK)
+	if (const uc_err err = uc_hook_add(this->m_engine, &hook, hook_type, callback_fn, user_data, 1, 0); err != UC_ERR_OK)
 	{
 		throw std::runtime_error(std::format("failed to add hook! error: {}", uc_strerror(err)));
 	}
@@ -93,7 +88,16 @@ void emulator_t::add_hook(const uc_hook_type hook_type, void* callback_fn)
 
 void emulator_t::start(const std::uintptr_t address) const
 {
-	if (const uc_err err = uc_emu_start(this->m_engine, address, 0, 0, 0); err != UC_ERR_OK)
+	uc_err err = uc_reg_write(this->m_engine, this->m_rsp_reg, &this->m_stack_end);
+
+	if (err != UC_ERR_OK)
+	{
+		throw std::runtime_error(std::format("failed to write virtual stack address to stack pointer! error: {}", uc_strerror(err)));
+	}
+
+	err = uc_emu_start(this->m_engine, address, 0, 0, 0);
+
+	if (err != UC_ERR_OK)
 	{
 		throw std::runtime_error(std::format("emulation failed with error: {}", uc_strerror(err)));
 	}
@@ -111,4 +115,15 @@ std::uintptr_t emulator_t::stack_pointer() const
 	uc_reg_read(this->m_engine, this->m_rsp_reg, &sp);
 
 	return sp;
+}
+
+std::uintptr_t emulator_t::return_address() const
+{
+	const std::uintptr_t sp = this->stack_pointer();
+
+	std::uintptr_t return_address = 0;
+
+	uc_mem_read(this->m_engine, sp, &return_address, sizeof(return_address));
+
+	return return_address;
 }
