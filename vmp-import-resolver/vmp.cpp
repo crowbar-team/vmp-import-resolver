@@ -25,7 +25,7 @@ static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::ui
 
 	if (instruction.info.mnemonic == ZYDIS_MNEMONIC_RET)
 	{
-		const std::uintptr_t return_address = vmp::context->emulator->return_address();
+		const std::uintptr_t return_address = vmp::context->emulator->read_stack();
 
 		bool leads_into_vmp_section = false;
 
@@ -45,7 +45,9 @@ static void code_hook(uc_engine* uc, const std::uintptr_t address, const std::ui
 
 			std::uintptr_t import_address = *static_cast<std::uintptr_t*>(user_data);
 
-			spdlog::info("resolved import at 0x{:X} to 0x{:X}", import_address, return_address);
+			std::uintptr_t fallback_address = vmp::context->emulator->read_stack(8);
+
+			spdlog::info("resolved import at 0x{:X} to 0x{:X}, fallback to 0x{:X}", import_address, return_address, fallback_address);
 		}
 	}
 }
@@ -54,8 +56,9 @@ void vmp::construct_context(const bool is_x64)
 {
     context = std::make_unique<context_t>();
 
-    context->disassembler = std::make_unique<x86::disassembler_t>(is_x64 ? ZYDIS_MACHINE_MODE_LONG_64 : ZYDIS_MACHINE_MODE_LONG_COMPAT_32, is_x64 ? ZYDIS_STACK_WIDTH_64 : ZYDIS_STACK_WIDTH_32);
-    context->emulator = std::make_unique<emulator_t>(UC_ARCH_X86, is_x64 ? UC_MODE_64 : UC_MODE_32);
+    context->disassembler = std::make_unique<x86::disassembler_t>(	is_x64 ? ZYDIS_MACHINE_MODE_LONG_64 : ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+																	is_x64 ? ZYDIS_STACK_WIDTH_64 : ZYDIS_STACK_WIDTH_32);
+    context->emulator = std::make_unique<emulator_t>(UC_ARCH_X86,	is_x64 ? UC_MODE_64 : UC_MODE_32);
 }
 
 void vmp::compute_sections(const std::vector<std::string>& vmp_sections, const std::uintptr_t module_base, const portable_executable::image_t* image)

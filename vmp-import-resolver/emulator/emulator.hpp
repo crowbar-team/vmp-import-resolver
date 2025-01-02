@@ -35,5 +35,5 @@ public:
 
 	[[nodiscard]] std::uintptr_t stack_pointer() const;
 
-	[[nodiscard]] std::uintptr_t return_address() const;
+	[[nodiscard]] std::uintptr_t read_stack(std::ptrdiff_t offset = 0) const;
 };

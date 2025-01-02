@@ -117,13 +117,14 @@ std::uintptr_t emulator_t::stack_pointer() const
 	return sp;
 }
 
-std::uintptr_t emulator_t::return_address() const
+std::uintptr_t emulator_t::read_stack(const std::ptrdiff_t offset) const
 {
 	const std::uintptr_t sp = this->stack_pointer();
 
-	std::uintptr_t return_address = 0;
+	std::uintptr_t value = 0;
 
-	uc_mem_read(this->m_engine, sp, &return_address, sizeof(return_address));
+	uc_mem_read(this->m_engine, sp + offset, &value, sizeof(value));
 
-	return return_address;
+	return value;
 }
+

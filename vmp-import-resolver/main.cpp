@@ -17,6 +17,9 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
+	const std::vector<std::string> secs = { ".SV3", ".E{\"", ".{I\"" };
+
+
 	if (!arg_parser_ctx)
 	{
 		spdlog::error(arg_parser_ctx.error());
@@ -74,7 +77,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 	{
 		vmp::construct_context(is_x64);
 
-		vmp::compute_sections(arg_parser_ctx->vmp_sections, module->address, image);
+		vmp::compute_sections(secs, module->address, image);
 	}
 	catch (std::runtime_error& error)
 	{
@@ -113,7 +116,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		map_sections.emplace_back(address, temp_buffer);
 	}
 
-	for (const auto& vmp_section : arg_parser_ctx->vmp_sections)
+	for (const auto& vmp_section : secs)
 	{
 		const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
 
