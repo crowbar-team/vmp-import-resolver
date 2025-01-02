@@ -3,10 +3,10 @@
 #include "dos_header.hpp"
 #include "nt_headers.hpp"
 
-#include "section_header.hpp"
 #include "export_directory.hpp"
 #include "imports_directory.hpp"
 #include "relocations_directory.hpp"
+#include "section_header.hpp"
 
 namespace portable_executable
 {

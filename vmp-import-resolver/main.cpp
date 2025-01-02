@@ -10,6 +10,8 @@
 #include "portable_executable/file.hpp"
 #include "portable_executable/image.hpp"
 
+#include "vmp.hpp"
+
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& context = arg_parser::parse(argc, argv);
@@ -63,17 +65,38 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		return EXIT_FAILURE;
 	}
 
-	const portable_executable::section_header_t* text_section = image->find_section(".text");
+	// cache base address and size of vmp sections in order to check if calls lead into there
+	std::vector<std::pair<std::uintptr_t, std::size_t>> vmp_sections = { };
 
-	if (!text_section)
 	{
-		spdlog::error("failed to find section .text");
+		for (const auto& vmp_section : context->vmp_sections)
+		{
+			const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
 
-		return EXIT_FAILURE;
+			if (!section_header)
+			{
+				spdlog::error("failed to find section {}", vmp_section);
+
+				return EXIT_FAILURE;
+			}
+
+			const std::uintptr_t address = module->address + section_header->virtual_address;
+
+			vmp_sections.emplace_back(address, section_header->virtual_size);
+		}
 	}
 
-	// map .text into emulator
+	// scan for possible import calls into vmp sections and map .text into emulator
 	{
+		const portable_executable::section_header_t* text_section = image->find_section(".text");
+
+		if (!text_section)
+		{
+			spdlog::error("failed to find section .text");
+
+			return EXIT_FAILURE;
+		}
+
 		std::vector<std::uint8_t> temp_buffer(text_section->virtual_size);
 
 		const std::uintptr_t address = module->address + text_section->virtual_address;
@@ -84,6 +107,8 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 			return EXIT_FAILURE;
 		}
+
+		std::vector<std::uintptr_t> import_calls = vmp::scan_import_calls(address, temp_buffer, vmp_sections);
 
 		try
 		{

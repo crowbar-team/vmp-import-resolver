@@ -194,8 +194,11 @@
     <ClCompile Include="portable_executable\nt_headers.cpp" />
     <ClCompile Include="portable_executable\relocations_directory.cpp" />
     <ClCompile Include="portable_executable\section_header.cpp" />
+    <ClCompile Include="signature_scanner.cpp" />
     <ClCompile Include="transform.cpp" />
+    <ClCompile Include="vmp.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
+    <ClCompile Include="x86\disassembler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arg_parser.hpp" />
@@ -211,8 +214,11 @@
     <ClInclude Include="portable_executable\optional_header.hpp" />
     <ClInclude Include="portable_executable\relocations_directory.hpp" />
     <ClInclude Include="portable_executable\section_header.hpp" />
+    <ClInclude Include="signature_scanner.hpp" />
     <ClInclude Include="transform.hpp" />
+    <ClInclude Include="vmp.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
+    <ClInclude Include="x86\disassembler.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

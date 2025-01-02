@@ -1,9 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
-#include <string>
 #include <filesystem>
+#include <vector>
 
 namespace portable_executable
 {

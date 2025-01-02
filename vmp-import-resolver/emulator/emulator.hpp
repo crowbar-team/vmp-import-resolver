@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstdint>
 #include <cstddef>
-#include <vector>
+#include <cstdint>
 #include <functional>
+#include <vector>
 #include <unicorn/unicorn.h>
 
 class emulator_t

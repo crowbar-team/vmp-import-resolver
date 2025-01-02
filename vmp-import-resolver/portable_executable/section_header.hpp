@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
+#include <string>
 
 namespace portable_executable
 {
