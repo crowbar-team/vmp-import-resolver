@@ -87,6 +87,8 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 	}
 
 	// scan for possible import calls into vmp sections and map .text into emulator
+	std::vector<std::uintptr_t> import_calls = { };
+
 	{
 		const portable_executable::section_header_t* text_section = image->find_section(".text");
 
@@ -108,7 +110,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			return EXIT_FAILURE;
 		}
 
-		std::vector<std::uintptr_t> import_calls = vmp::scan_import_calls(address, temp_buffer, vmp_sections);
+		import_calls = vmp::scan_import_calls(address, temp_buffer, vmp_sections);
 
 		try
 		{
@@ -155,6 +157,27 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 			return EXIT_FAILURE;
 		}
+	}
+
+	const auto code_hook = +[](uc_engine* uc, uint64_t address, uint32_t size, void* user_data)
+	{
+
+	};
+
+	try
+	{
+		emulator.add_hook(UC_HOOK_CODE, code_hook);
+	}
+	catch (std::runtime_error& error)
+	{
+		spdlog::error(error.what());
+
+		return EXIT_FAILURE;
+	}
+
+	for (const auto& import_call : import_calls)
+	{
+		spdlog::info("found possible import call at 0x{0:X}. starting emulation...", import_call);
 	}
 
 	return EXIT_SUCCESS;
