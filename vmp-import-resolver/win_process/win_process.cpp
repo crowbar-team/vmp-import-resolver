@@ -1,4 +1,5 @@
 #include "win_process.hpp"
+#include "../transform.hpp"
 
 #include <Windows.h>
 #include <Psapi.h>
@@ -77,4 +78,26 @@ std::expected<std::vector<win_process_t::win_module_t>, std::uint32_t> win_proce
 	}
 
 	return win_modules;
+}
+
+std::expected<win_process_t::win_module_t, std::string> win_process_t::find_module(const std::string_view module_name) const
+{
+	const auto& modules = this->modules();
+
+	if (!modules)
+	{
+		return std::unexpected(std::format("failed to get module list with last error {}", modules.error()));
+	}
+
+	const std::string module_name_lower = transform::to_lower(module_name);
+
+	for (const auto& module : *modules)
+	{
+		if (transform::to_lower(module.path.string()).find(module_name_lower) != std::string::npos)
+		{
+			return module;
+		}
+	}
+
+	return std::unexpected(std::format("failed to find module {} in process {}", module_name, this->m_process_id));
 }

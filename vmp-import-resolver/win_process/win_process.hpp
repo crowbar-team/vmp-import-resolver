@@ -33,4 +33,6 @@ public:
 	};
 
 	[[nodiscard]] std::expected<std::vector<win_module_t>, std::uint32_t> modules() const;
+
+	[[nodiscard]] std::expected<win_module_t, std::string> find_module(std::string_view module_name) const;
 };

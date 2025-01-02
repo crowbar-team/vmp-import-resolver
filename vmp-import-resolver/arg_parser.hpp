@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <expected>
 
 namespace arg_parser
 {
@@ -13,5 +14,5 @@ namespace arg_parser
 		std::vector<std::string> vmp_sections;
 	};
 
-	context_t parse(std::int32_t argc, const char** argv);
+	std::expected<context_t, std::string> parse(std::int32_t argc, const char** argv);
 }
