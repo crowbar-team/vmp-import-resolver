@@ -15,27 +15,25 @@
 
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
-	const auto& context = arg_parser::parse(argc, argv);
+	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".y M", ".BQ+", ".'RV" };
-
-	if (!context)
+	if (!arg_parser_ctx)
 	{
-		spdlog::error(context.error());
+		spdlog::error(arg_parser_ctx.error());
 
 		return EXIT_FAILURE;
 	}
 
-	win_process_t win_process(context->process_id);
+	win_process_t win_process(arg_parser_ctx->process_id);
 
 	if (!win_process.attach())
 	{
-		spdlog::error("failed to attach to process id {}", context->process_id);
+		spdlog::error("failed to attach to process id {}", arg_parser_ctx->process_id);
 
 		return EXIT_FAILURE;
 	}
 
-	const auto& module = win_process.find_module(context->module_name);
+	const auto& module = win_process.find_module(arg_parser_ctx->module_name);
 
 	if (!module)
 	{
@@ -67,7 +65,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			is_x64 = false;
 			break;
 
-		default:  // NOLINT(clang-diagnostic-covered-switch-default)
+		default:
 			spdlog::error("invalid machine id. this software only supports x86 and x86_64 portable executables!");
 			return EXIT_FAILURE;
 	}
@@ -76,7 +74,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 	{
 		vmp::construct_context(is_x64);
 
-		vmp::compute_sections(secs, module->address, image);
+		vmp::compute_sections(arg_parser_ctx->vmp_sections, module->address, image);
 	}
 	catch (std::runtime_error& error)
 	{
@@ -115,7 +113,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		map_sections.emplace_back(address, temp_buffer);
 	}
 
-	for (const auto& vmp_section : secs)
+	for (const auto& vmp_section : arg_parser_ctx->vmp_sections)
 	{
 		const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
 
