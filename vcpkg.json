@@ -3,6 +3,7 @@
     "spdlog",
     "unicorn",
     "zydis",
-    "argparse"
+    "argparse",
+    "asmjit"
   ]
 }

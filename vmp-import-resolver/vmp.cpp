@@ -1,4 +1,5 @@
 #include "vmp.hpp"
+#include <asmjit/asmjit.h>
 
 #include <format>
 #include <stdexcept>
@@ -98,7 +99,28 @@ void vmp::map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<s
 	}
 }
 
-void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
+std::vector<std::uint8_t> get_stub_assembler(std::uint64_t import_to_call, std::uint32_t stack_offset)
+{
+	asmjit::JitRuntime jit_runtime;
+	asmjit::CodeHolder code_holder;
+
+	code_holder.init(jit_runtime.environment());
+	asmjit::x86::Assembler assembler(&code_holder);
+
+	assembler.add(asmjit::x86::rsp, asmjit::imm(stack_offset));
+	assembler.jmp(import_to_call);
+
+	std::uint8_t* jit = nullptr;
+
+	if (jit_runtime.add(&jit, &code_holder) != 0)
+	{
+		return { };
+	}
+
+	return std::vector<std::uint8_t>(jit, jit + code_holder.codeSize());
+}
+
+void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls, std::uintptr_t module_base, std::vector<std::uint8_t> dumped_binary)
 {
 	user_data_t user_data = { };
 
@@ -113,5 +135,25 @@ void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls)
 		context->emulator->start(import_call);
 	}
 
-	// todo: process user_data.stubs_needed and apply them
+	portable_executable::image_t* binary_image = reinterpret_cast<portable_executable::image_t*>(dumped_binary.data());
+
+	std::uint64_t stub_size = get_stub_assembler(binary_image->as<std::uintptr_t>(), 8).size();
+
+	std::uint64_t stub_section_size = stub_size * user_data.stubs_needed.size();
+
+	spdlog::info("secondary iat stub section size 0x{0:X}", stub_section_size);
+
+	// rwx
+	dumped_binary = binary_image->add_section(".stub", static_cast<std::uint32_t>(stub_section_size), 0x40);
+
+	while (user_data.stubs_needed.empty() == false)
+	{
+		import_stub_data_t& stub_data = user_data.stubs_needed.top();
+
+		// call stub at address_calling_import
+		// stub must call real_import_address
+		// and fix up stack misalignment
+
+		user_data.stubs_needed.pop();
+	}
 }

@@ -17,8 +17,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".SV3", ".E{\"", ".{I\"" };
-
+	const std::vector<std::string> secs = { ".6IQ", ".d#F", ".'Zn" };
 
 	if (!arg_parser_ctx)
 	{
@@ -141,10 +140,19 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		map_sections.emplace_back(address, temp_buffer);
 	}
 
+	std::vector<std::uint8_t> dumped_binary = win_process.dump(arg_parser_ctx->module_name);
+
+	if (dumped_binary.empty())
+	{
+		spdlog::error("failed to dump module from remote process");
+
+		return EXIT_FAILURE;
+	}
+
 	try
 	{
 		vmp::map_sections(map_sections);
-		vmp::process_import_calls(import_calls);
+		vmp::process_import_calls(import_calls, module->address, dumped_binary);
 	}
 	catch (std::runtime_error& error)
 	{
