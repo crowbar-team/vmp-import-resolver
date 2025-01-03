@@ -66,8 +66,8 @@ namespace portable_executable
 
 			new_section_header->virtual_address = calculate_alignment(last_section_header->virtual_address + last_section_header->virtual_size, nt_headers->optional_header.section_alignment);
 			new_section_header->virtual_size = calculate_alignment(size + 5, nt_headers->optional_header.section_alignment);
-			new_section_header->pointer_to_raw_data = calculate_alignment(last_section_header->pointer_to_raw_data + last_section_header->size_of_raw_data, nt_headers->optional_header.file_alignment);
-			new_section_header->size_of_raw_data = calculate_alignment(size + 5, nt_headers->optional_header.file_alignment);
+			new_section_header->pointer_to_raw_data = new_section_header->virtual_address;
+			new_section_header->size_of_raw_data = new_section_header->virtual_size;
 			new_section_header->characteristics = { .flags = characteristics };
 
 			new_section_header->pointer_to_linenumbers = 0;
