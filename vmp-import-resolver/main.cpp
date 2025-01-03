@@ -17,7 +17,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".SV3", ".E{\"", ".{I\"" };
+	const std::vector<std::string> secs = { ".6IQ", ".d#F", ".'Zn" };
 
 	if (!arg_parser_ctx)
 	{
