@@ -99,7 +99,7 @@ void vmp::map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<s
 	}
 }
 
-std::vector<std::uint8_t> get_stub_assembler(std::uint64_t import_to_call, std::uint32_t stack_offset)
+std::vector<std::uint8_t> get_stub_assembler(std::uintptr_t import_to_call, std::uintptr_t location_to_return_to, std::uint32_t stack_offset)
 {
 	asmjit::JitRuntime jit_runtime;
 	asmjit::CodeHolder code_holder;
@@ -107,7 +107,9 @@ std::vector<std::uint8_t> get_stub_assembler(std::uint64_t import_to_call, std::
 	code_holder.init(jit_runtime.environment());
 	asmjit::x86::Assembler assembler(&code_holder);
 
-	assembler.add(asmjit::x86::rsp, asmjit::imm(stack_offset));
+	// because of the call to the stub (sp decremented by 8), stack offset has to be + 8
+	assembler.add(asmjit::x86::rsp, asmjit::imm(stack_offset + 8));
+	assembler.push(location_to_return_to);
 	assembler.jmp(import_to_call);
 
 	std::uint8_t* jit = nullptr;
@@ -128,7 +130,7 @@ void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls, 
 
 	for (const auto& import_call : import_calls)
 	{
-		user_data.stubs_needed.push({ .real_import_address = import_call });
+		user_data.stubs_needed.push({ .address_calling_import = import_call });
 
 		spdlog::info("starting emulation for possible import call at 0x{0:X}...", import_call);
 
@@ -137,22 +139,47 @@ void vmp::process_import_calls(const std::vector<std::uintptr_t>& import_calls, 
 
 	portable_executable::image_t* binary_image = reinterpret_cast<portable_executable::image_t*>(dumped_binary.data());
 
-	std::uint64_t stub_size = get_stub_assembler(binary_image->as<std::uintptr_t>(), 8).size();
+	std::uint64_t stub_size = get_stub_assembler(module_base, module_base, 8).size();
 
 	std::uint64_t stub_section_size = stub_size * user_data.stubs_needed.size();
 
 	spdlog::info("secondary iat stub section size 0x{0:X}", stub_section_size);
 
-	// rwx
-	dumped_binary = binary_image->add_section(".stub", static_cast<std::uint32_t>(stub_section_size), 0x40);
+	// rx section
+	dumped_binary = binary_image->add_section(".stub", static_cast<std::uint32_t>(stub_section_size), 0x20);
+	binary_image = reinterpret_cast<portable_executable::image_t*>(dumped_binary.data());
+
+	portable_executable::section_header_t* stub_section = binary_image->find_section(".stub");
+
+	if (stub_section == nullptr)
+	{
+		spdlog::error("unable to acquire newly generated stub section, was it properly added?");
+
+		return;
+	}
 
 	while (user_data.stubs_needed.empty() == false)
 	{
-		import_stub_data_t& stub_data = user_data.stubs_needed.top();
+		const import_stub_data_t& stub_data = user_data.stubs_needed.top();
 
-		// call stub at address_calling_import
-		// stub must call real_import_address
-		// and fix up stack misalignment
+		std::uintptr_t allocated_stub_address = module_base + stub_section->virtual_address + (stub_size * (user_data.stubs_needed.size() - 1));
+
+		std::uintptr_t offset_loc_calling_import = stub_data.address_calling_import - module_base;
+		std::uintptr_t offset_loc_stub = allocated_stub_address - module_base;
+
+		// todo: locate at runtime
+		constexpr std::uint32_t positive_stack_alignment = 8;
+
+		std::vector<std::uint8_t> stub_assembler = get_stub_assembler(stub_data.real_import_address, stub_data.address_calling_import, positive_stack_alignment);
+
+		// nops at end get rid of junk instruction that vmp places after the import call
+		std::array<std::uint8_t, 7> stub_invokation_assembler = { 0xE8, 0x00, 0x00, 0x00, 0x00, 0x90, 0x90 };
+		*reinterpret_cast<std::uint32_t*>(&stub_invokation_assembler[1]) = static_cast<std::uint32_t>(allocated_stub_address - stub_data.address_calling_import);
+
+		memcpy(dumped_binary.data() + offset_loc_calling_import, stub_invokation_assembler.data(), sizeof(stub_invokation_assembler));
+		memcpy(dumped_binary.data() + offset_loc_stub, stub_assembler.data(), stub_assembler.size());
+
+		spdlog::info("applied stub call patch at: 0x{0:X}", stub_data.address_calling_import);
 
 		user_data.stubs_needed.pop();
 	}

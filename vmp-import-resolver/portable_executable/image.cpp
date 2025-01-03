@@ -26,7 +26,7 @@ portable_executable::section_header_t* portable_executable::image_t::find_sectio
 {
 	for (auto& section : this->sections())
 	{
-		if (section.to_str().find(name) != std::string::npos)
+		if (name == section.name)
 		{
 			return &section;
 		}
