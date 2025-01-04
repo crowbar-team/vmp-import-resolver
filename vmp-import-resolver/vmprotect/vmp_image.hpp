@@ -26,8 +26,14 @@ namespace vmp
 
 		void initialize_memory_pe(std::size_t image_size, const win_process_t* win_process);
 
+		std::expected<std::uint32_t, std::string> compute_new_section_va();
+
 		std::expected<portable_executable::section_header_t*, std::string> add_section(std::string_view name, std::uint32_t size, portable_executable::section_characteristics_t section_characteristics);
 
 		void dump_to_fs(const std::filesystem::path& fs_path);
+
+		std::uint8_t* get();
+
+		void set_iat(std::uint32_t virtual_address, std::uint32_t size);
 	};
 }

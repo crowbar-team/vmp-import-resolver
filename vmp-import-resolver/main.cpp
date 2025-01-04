@@ -19,7 +19,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".u6j", ".jcH", ".8hX" };
+	const std::vector<std::string> secs = { ".8an", ".^|6", ".jy)" };
 
 	if (!arg_parser_ctx)
 	{
@@ -200,14 +200,11 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		}
 	}
 
-	/*
-
-	vmp_image_t vmp_image(module->address);
+	vmp::image_t vmp_image(module->address);
 
 	try
 	{
 		vmp_image.initialize_memory_pe(module->size, &win_process);
-		vmp_image.dump_to_fs("C:\\Users\\matvey\\Documents\\dumped_test.exe");
 	}
 	catch (std::runtime_error& error)
 	{
@@ -215,7 +212,19 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 		return EXIT_FAILURE;
 	}
-	*/
+
+	try
+	{
+		iat.reconstruct(&vmp_image);
+
+		vmp_image.dump_to_fs("C:\\Users\\rakitin\\Documents\\dumped_test.exe");
+	}
+	catch (std::runtime_error& error)
+	{
+		spdlog::error(error.what());
+
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }

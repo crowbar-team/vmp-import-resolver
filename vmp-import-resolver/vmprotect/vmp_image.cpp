@@ -34,6 +34,32 @@ void vmp::image_t::initialize_memory_pe(const std::size_t image_size, const win_
 	}
 }
 
+std::expected<std::uint32_t, std::string> vmp::image_t::compute_new_section_va()
+{
+	portable_executable::image_t* image = this->image();
+
+	if (!image || !image->dos_header()->valid() || !image->nt_headers()->valid())
+	{
+		return std::unexpected("invalid image loaded");
+	}
+
+	const portable_executable::section_header_t* last_section = image->get_section(image->num_sections() - 1);
+
+	if (!last_section)
+	{
+		return std::unexpected("failed to find last section in image");
+	}
+
+	const auto optional_header = &image->nt_headers()->optional_header;
+
+	const auto align = [](const std::uint32_t value, const std::uint32_t alignment) -> std::uint32_t
+	{
+		return value + (alignment - value % alignment);
+	};
+
+	return align(last_section->virtual_address + last_section->virtual_size, optional_header->section_alignment);
+}
+
 std::expected<portable_executable::section_header_t*, std::string> vmp::image_t::add_section(const std::string_view name, const std::uint32_t size, const portable_executable::section_characteristics_t section_characteristics)
 {
 	if (name.length() > portable_executable::section_name_size_limit)
@@ -89,7 +115,7 @@ std::expected<portable_executable::section_header_t*, std::string> vmp::image_t:
 
 	this->m_buffer = std::move(new_image);
 
-	return image->find_section(name);
+	return this->image()->find_section(name);
 }
 
 void vmp::image_t::dump_to_fs(const std::filesystem::path& fs_path)
@@ -112,4 +138,17 @@ void vmp::image_t::dump_to_fs(const std::filesystem::path& fs_path)
 	}
 
 	file_stream.write(reinterpret_cast<const char*>(this->m_buffer.data()), static_cast<std::streamsize>(this->m_buffer.size()));
+}
+
+std::uint8_t* vmp::image_t::get()
+{
+	return this->m_buffer.data();
+}
+
+void vmp::image_t::set_iat(const std::uint32_t virtual_address, const std::uint32_t size)
+{
+	portable_executable::data_directory_t* data_directory = &this->image()->nt_headers()->optional_header.data_directories.import_directory;
+
+	data_directory->virtual_address = virtual_address;
+	data_directory->size = size;
 }
