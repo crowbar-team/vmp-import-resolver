@@ -128,3 +128,7 @@ std::uintptr_t emulator_t::read_stack(const std::ptrdiff_t offset) const
 	return value;
 }
 
+std::uintptr_t emulator_t::stack_displacement() const
+{
+	return this->m_stack_end - this->stack_pointer();
+}

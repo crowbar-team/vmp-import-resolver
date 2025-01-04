@@ -22,6 +22,18 @@ const portable_executable::nt_headers_t* portable_executable::image_t::nt_header
 	return this->dos_header()->nt_headers();
 }
 
+std::uint16_t portable_executable::image_t::num_sections() const
+{
+	const nt_headers_t* nt_headers = this->nt_headers();
+
+	if (!nt_headers)
+	{
+		return 0;
+	}
+
+	return nt_headers->file_header.number_of_sections;
+}
+
 portable_executable::section_header_t* portable_executable::image_t::find_section(const std::string_view name)
 {
 	for (auto& section : this->sections())
@@ -46,6 +58,54 @@ const portable_executable::section_header_t* portable_executable::image_t::find_
 	}
 
 	return nullptr;
+}
+
+portable_executable::section_header_t* portable_executable::image_t::get_sections()
+{
+	const nt_headers_t* nt_headers = this->nt_headers();
+
+	if (!nt_headers)
+	{
+		return nullptr;
+	}
+
+	return reinterpret_cast<section_header_t*>(reinterpret_cast<std::uintptr_t>(&nt_headers->optional_header) + nt_headers->file_header.sizeof_optional_header);
+}
+
+const portable_executable::section_header_t* portable_executable::image_t::get_sections() const
+{
+	const nt_headers_t* nt_headers = this->nt_headers();
+
+	if (!nt_headers)
+	{
+		return nullptr;
+	}
+
+	return reinterpret_cast<section_header_t*>(reinterpret_cast<std::uintptr_t>(&nt_headers->optional_header) + nt_headers->file_header.sizeof_optional_header);
+}
+
+portable_executable::section_header_t* portable_executable::image_t::get_section(const std::size_t index)
+{
+	const nt_headers_t* nt_headers = this->nt_headers();
+
+	if (!nt_headers)
+	{
+		return nullptr;
+	}
+
+	return index >= nt_headers->file_header.number_of_sections ? nullptr : this->get_sections() + index;
+}
+
+const portable_executable::section_header_t* portable_executable::image_t::get_section(const std::size_t index) const
+{
+	const nt_headers_t* nt_headers = this->nt_headers();
+
+	if (!nt_headers)
+	{
+		return nullptr;
+	}
+
+	return index >= nt_headers->file_header.number_of_sections ? nullptr : this->get_sections() + index;
 }
 
 std::uint8_t* portable_executable::image_t::find_export(const std::string_view name) const

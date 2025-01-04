@@ -11,12 +11,21 @@
 
 namespace vmp
 {
+	struct import_t
+	{
+		std::uintptr_t calling_address;
+		std::uintptr_t import_address;
+		std::uintptr_t fallback_address;
+		std::uintptr_t stack_displacement;
+	};
+
 	struct context_t
 	{
 		std::unique_ptr<x86::disassembler_t> disassembler;
 		std::unique_ptr<emulator_t> emulator;
 
 		std::vector<std::pair<std::uintptr_t, std::size_t>> sections;
+		std::vector<import_t> imports;
 	};
 
 	inline std::unique_ptr<context_t> context;
@@ -27,5 +36,5 @@ namespace vmp
 
 	void map_sections(const std::vector<std::pair<std::uintptr_t, std::vector<std::uint8_t>>>& sections);
 
-	void process_import_calls(const std::vector<std::uintptr_t>& import_calls, std::uintptr_t module_base, std::vector<std::uint8_t> dumped_binary);
+	void process_import_calls(const std::vector<std::uintptr_t>& import_calls, std::uintptr_t module_base);
 }

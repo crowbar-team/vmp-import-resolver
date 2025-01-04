@@ -72,9 +72,9 @@ namespace portable_executable
 
         relocations_iterator_t& operator++();
 
-        bool operator==(const relocations_iterator_t& other);
+        bool operator==(const relocations_iterator_t& other) const;
 
-        bool operator!=(const relocations_iterator_t& other);
+        bool operator!=(const relocations_iterator_t& other) const;
     };
 
     template<typename T>

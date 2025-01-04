@@ -11,13 +11,16 @@
 #include "portable_executable/image.hpp"
 
 #include "vmp.hpp"
+#include "vmp_image.hpp"
 #include "vmp_utilities.hpp"
+
+#include <fstream>
 
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".6IQ", ".d#F", ".'Zn" };
+	const std::vector<std::string> secs = { ".aE'", ".]&z", ".x^P" };
 
 	if (!arg_parser_ctx)
 	{
@@ -57,7 +60,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 	bool is_x64;
 
-	switch (const portable_executable::machine_id_t machine_id = image->nt_headers()->file_header.machine)
+	switch (image->nt_headers()->file_header.machine)
 	{
 		case portable_executable::machine_id_t::amd64:
 			is_x64 = true;
@@ -140,19 +143,10 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		map_sections.emplace_back(address, temp_buffer);
 	}
 
-	std::vector<std::uint8_t> dumped_binary = win_process.dump(arg_parser_ctx->module_name);
-
-	if (dumped_binary.empty())
-	{
-		spdlog::error("failed to dump module from remote process");
-
-		return EXIT_FAILURE;
-	}
-
 	try
 	{
 		vmp::map_sections(map_sections);
-		vmp::process_import_calls(import_calls, module->address, dumped_binary);
+		vmp::process_import_calls(import_calls, module->address);
 	}
 	catch (std::runtime_error& error)
 	{
@@ -160,6 +154,21 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 		return EXIT_FAILURE;
 	}
+
+	vmp_image_t vmp_image(module->address);
+
+	try
+	{
+		vmp_image.initialize_memory_pe(module->size, &win_process);
+		vmp_image.dump_to_fs("C:\\Users\\matvey\\Documents\\dumped_test.exe");
+	}
+	catch (std::runtime_error& error)
+	{
+		spdlog::error(error.what());
+
+		return EXIT_FAILURE;
+	}
+
 
 	return EXIT_SUCCESS;
 }

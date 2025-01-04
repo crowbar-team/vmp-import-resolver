@@ -197,6 +197,7 @@
     <ClCompile Include="signature_scanner.cpp" />
     <ClCompile Include="transform.cpp" />
     <ClCompile Include="vmp.cpp" />
+    <ClCompile Include="vmp_image.cpp" />
     <ClCompile Include="vmp_utilities.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
     <ClCompile Include="x86\disassembler.cpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="signature_scanner.hpp" />
     <ClInclude Include="transform.hpp" />
     <ClInclude Include="vmp.hpp" />
+    <ClInclude Include="vmp_image.hpp" />
     <ClInclude Include="vmp_utilities.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
     <ClInclude Include="x86\disassembler.hpp" />

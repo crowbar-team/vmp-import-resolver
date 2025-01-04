@@ -25,7 +25,7 @@ public:
 
 	bool write(std::uintptr_t address, const void* buffer, std::size_t size) const;
 
-	std::vector<std::uint8_t> dump(std::string_view module_name) const;
+	//std::vector<std::uint8_t> dump(std::string_view module_name) const;
 
 	struct win_module_t
 	{

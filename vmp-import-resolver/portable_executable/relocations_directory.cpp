@@ -48,12 +48,12 @@ portable_executable::relocations_iterator_t& portable_executable::relocations_it
     return *this;
 }
 
-bool portable_executable::relocations_iterator_t::operator==(const relocations_iterator_t& other)
+bool portable_executable::relocations_iterator_t::operator==(const relocations_iterator_t& other) const
 {
     return this->m_current_descriptor == other.m_current_descriptor;
 }
 
-bool portable_executable::relocations_iterator_t::operator!=(const relocations_iterator_t& other)
+bool portable_executable::relocations_iterator_t::operator!=(const relocations_iterator_t& other) const
 {
     return this->m_current_descriptor != other.m_current_descriptor;
 }
