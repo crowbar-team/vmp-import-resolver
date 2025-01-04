@@ -110,7 +110,7 @@ const portable_executable::section_header_t* portable_executable::image_t::get_s
 
 std::uint8_t* portable_executable::image_t::find_export(const std::string_view name) const
 {
-	for (const auto& [export_name, export_address] : this->exports())
+	for (const auto& [export_name, va, export_address] : this->exports())
 	{
 		if (export_name.find(name) != std::string::npos)
 		{

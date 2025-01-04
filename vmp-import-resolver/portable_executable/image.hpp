@@ -137,7 +137,7 @@ namespace portable_executable
 			return { module, data_directory.virtual_address };
 		}
 
-		std::uint16_t num_sections() const;
+		[[nodiscard]] std::uint16_t num_sections() const;
 
 		section_header_t* find_section(std::string_view name);
 

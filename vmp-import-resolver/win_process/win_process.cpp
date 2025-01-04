@@ -131,3 +131,29 @@ std::expected<win_process_t::win_module_t, std::string> win_process_t::find_modu
 
 	return std::unexpected(std::format("failed to find module {} in process {}", module_name, this->m_process_id));
 }
+
+std::expected<std::vector<win_process_t::local_module_t>, std::string> win_process_t::modules_local_mapped() const
+{
+	const auto& modules = this->modules();
+
+	if (!modules)
+	{
+		return std::unexpected(std::format("failed to get module list with last error {}", modules.error()));
+	}
+
+	std::vector<local_module_t> local_modules;
+
+	for (const auto& module : *modules)
+	{
+		auto pe = std::make_unique<portable_executable::file_t>(module.path);
+
+		if (!pe->load())
+		{
+			return std::unexpected(std::format("failed to load pe from path {}", module.path.string()));
+		}
+
+		local_modules.emplace_back(std::move(pe), module.address);
+	}
+
+	return local_modules;
+}

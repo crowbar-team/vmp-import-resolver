@@ -20,7 +20,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 {
 	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
 
-	const std::vector<std::string> secs = { ".aE'", ".]&z", ".x^P" };
+	const std::vector<std::string> secs = { ".u6j", ".jcH", ".8hX" };
 
 	if (!arg_parser_ctx)
 	{
@@ -155,6 +155,34 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		return EXIT_FAILURE;
 	}
 
+	const auto mapped_modules = win_process.modules_local_mapped();
+
+	if (!mapped_modules)
+	{
+		spdlog::error(mapped_modules.error());
+
+		return EXIT_FAILURE;
+	}
+
+	for (const auto& import : vmp::context->imports)
+	{
+		for (const auto& [pe, remote_image_base] : *mapped_modules)
+		{
+			const std::uintptr_t possible_import_va = import.import_address - remote_image_base;
+
+			for (	const auto mapped_image = pe->image();
+					const auto& [export_name, export_va, _] : mapped_image->exports())
+			{
+				if (possible_import_va == export_va)
+				{
+					spdlog::info("resolved to {}", export_name);
+				}
+			}
+		}
+	}
+
+	/*
+
 	vmp_image_t vmp_image(module->address);
 
 	try
@@ -168,7 +196,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 
 		return EXIT_FAILURE;
 	}
-
+	*/
 
 	return EXIT_SUCCESS;
 }

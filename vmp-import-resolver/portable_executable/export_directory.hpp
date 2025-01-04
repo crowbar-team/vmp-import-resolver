@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 #include <iterator>
 
 namespace portable_executable
@@ -8,6 +9,7 @@ namespace portable_executable
     struct export_entry_t
     {
         std::string name;
+        std::uint32_t va;
         std::uint8_t* address;
     };
 

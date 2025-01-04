@@ -5,6 +5,9 @@
 #include <expected>
 #include <filesystem>
 #include <vector>
+#include <memory>
+
+#include "../portable_executable/file.hpp"
 
 class win_process_t
 {
@@ -37,4 +40,13 @@ public:
 	[[nodiscard]] std::expected<std::vector<win_module_t>, std::uint32_t> modules() const;
 
 	[[nodiscard]] std::expected<win_module_t, std::string> find_module(std::string_view module_name) const;
+
+	struct local_module_t
+	{
+		std::unique_ptr<portable_executable::file_t> pe;
+
+		std::uintptr_t remote_image_base;
+	};
+
+	[[nodiscard]] std::expected<std::vector<local_module_t>, std::string> modules_local_mapped() const;
 };

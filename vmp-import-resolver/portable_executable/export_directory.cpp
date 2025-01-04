@@ -17,6 +17,7 @@ portable_executable::exports_iterator_t::value_type portable_executable::exports
 	return
 	{
 		reinterpret_cast<const char*>(this->m_module + name_offset),
+		functions_offset,
 		const_cast<std::uint8_t*>(this->m_module + functions_offset)
 	};
 }
