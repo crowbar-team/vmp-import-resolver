@@ -199,6 +199,7 @@
     <ClCompile Include="vmprotect\vmp.cpp" />
     <ClCompile Include="vmprotect\vmp_iat.cpp" />
     <ClCompile Include="vmprotect\vmp_image.cpp" />
+    <ClCompile Include="vmprotect\vmp_pe.cpp" />
     <ClCompile Include="vmprotect\vmp_utilities.cpp" />
     <ClCompile Include="win_process\win_process.cpp" />
     <ClCompile Include="x86\disassembler.cpp" />
@@ -222,6 +223,7 @@
     <ClInclude Include="vmprotect\vmp.hpp" />
     <ClInclude Include="vmprotect\vmp_iat.hpp" />
     <ClInclude Include="vmprotect\vmp_image.hpp" />
+    <ClInclude Include="vmprotect\vmp_pe.hpp" />
     <ClInclude Include="vmprotect\vmp_utilities.hpp" />
     <ClInclude Include="win_process\win_process.hpp" />
     <ClInclude Include="x86\disassembler.hpp" />

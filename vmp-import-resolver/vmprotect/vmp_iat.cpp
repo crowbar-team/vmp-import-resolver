@@ -16,3 +16,8 @@ void vmp::iat_t::add_import(const std::string& module_name, const std::string& f
 		this->m_iat[module_name].emplace_back(function_name);
 	}
 }
+
+std::size_t vmp::iat_t::size()
+{
+	return 0;
+}

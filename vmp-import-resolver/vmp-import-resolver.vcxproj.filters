@@ -75,6 +75,9 @@
     <ClCompile Include="vmprotect\vmp_iat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vmprotect\vmp_pe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="win_process\win_process.hpp">
@@ -138,6 +141,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vmprotect\vmp_iat.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vmprotect\vmp_pe.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

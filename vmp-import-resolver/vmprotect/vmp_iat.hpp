@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
-#include <cstdint>
 #include <vector>
 #include <unordered_map>
+
+#include "../portable_executable/imports_directory.hpp"
 
 namespace vmp
 {
@@ -17,5 +18,6 @@ namespace vmp
 
 		void add_import(const std::string& module_name, const std::string& function_name);
 
+		std::size_t size();
 	};
 }
