@@ -152,7 +152,7 @@ std::expected<std::vector<win_process_t::local_module_t>, std::string> win_proce
 			return std::unexpected(std::format("failed to load pe from path {}", module.path.string()));
 		}
 
-		local_modules.emplace_back(std::move(pe), module.address);
+		local_modules.emplace_back(std::move(pe), module.address, module.path.filename().string());
 	}
 
 	return local_modules;

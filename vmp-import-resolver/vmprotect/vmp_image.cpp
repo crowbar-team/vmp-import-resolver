@@ -1,19 +1,20 @@
 #include "vmp_image.hpp"
-#include "win_process/win_process.hpp"
+#include "../win_process/win_process.hpp"
 
 #include <format>
 #include <fstream>
 
-portable_executable::image_t* vmp_image_t::image()
+portable_executable::image_t* vmp::image_t::image()
 {
 	return reinterpret_cast<portable_executable::image_t*>(this->m_buffer.data());
 }
 
-vmp_image_t::vmp_image_t(const std::uintptr_t image_base) : m_image_base(image_base)
+vmp::image_t::image_t(const std::uintptr_t image_base) : m_image_base(image_base)
 {
+
 }
 
-void vmp_image_t::initialize_memory_pe(const std::size_t image_size, const win_process_t* win_process)
+void vmp::image_t::initialize_memory_pe(const std::size_t image_size, const win_process_t* win_process)
 {
 	if (!image_size)
 	{
@@ -33,7 +34,7 @@ void vmp_image_t::initialize_memory_pe(const std::size_t image_size, const win_p
 	}
 }
 
-std::expected<portable_executable::section_header_t*, std::string> vmp_image_t::add_section(const std::string_view name, const std::uint32_t size, const portable_executable::section_characteristics_t section_characteristics)
+std::expected<portable_executable::section_header_t*, std::string> vmp::image_t::add_section(const std::string_view name, const std::uint32_t size, const portable_executable::section_characteristics_t section_characteristics)
 {
 	if (name.length() > portable_executable::section_name_size_limit)
 	{
@@ -91,7 +92,7 @@ std::expected<portable_executable::section_header_t*, std::string> vmp_image_t::
 	return image->find_section(name);
 }
 
-void vmp_image_t::dump_to_fs(const std::filesystem::path& fs_path)
+void vmp::image_t::dump_to_fs(const std::filesystem::path& fs_path)
 {
 	portable_executable::image_t* image = this->image();
 

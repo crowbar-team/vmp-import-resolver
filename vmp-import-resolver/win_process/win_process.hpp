@@ -46,6 +46,8 @@ public:
 		std::unique_ptr<portable_executable::file_t> pe;
 
 		std::uintptr_t remote_image_base;
+
+		std::string module_name;
 	};
 
 	[[nodiscard]] std::expected<std::vector<local_module_t>, std::string> modules_local_mapped() const;

@@ -10,11 +10,10 @@
 #include "portable_executable/file.hpp"
 #include "portable_executable/image.hpp"
 
-#include "vmp.hpp"
-#include "vmp_image.hpp"
-#include "vmp_utilities.hpp"
-
-#include <fstream>
+#include "vmprotect/vmp.hpp"
+#include "vmprotect/vmp_iat.hpp"
+#include "vmprotect/vmp_image.hpp"
+#include "vmprotect/vmp_utilities.hpp"
 
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
@@ -113,7 +112,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			return EXIT_FAILURE;
 		}
 
-		import_calls = vmp_utilities::scan_import_calls(address, temp_buffer);
+		import_calls = vmp::utilities::scan_import_calls(address, temp_buffer);
 
 		map_sections.emplace_back(address, temp_buffer);
 	}
@@ -164,9 +163,15 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		return EXIT_FAILURE;
 	}
 
+	spdlog::info("starting iat rebuild...");
+
+	vmp::iat_t iat;
+
 	for (const auto& import : vmp::context->imports)
 	{
-		for (const auto& [pe, remote_image_base] : *mapped_modules)
+		bool found = false;
+
+		for (const auto& [pe, remote_image_base, module_name] : *mapped_modules)
 		{
 			const std::uintptr_t possible_import_va = import.import_address - remote_image_base;
 
@@ -176,7 +181,21 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 				if (possible_import_va == export_va)
 				{
 					spdlog::info("resolved to {}", export_name);
+
+					iat.add_import(module_name, export_name);
+
+					found = true;
 				}
+
+				if (found)
+				{
+					break;
+				}
+			}
+
+			if (found)
+			{
+				break;
 			}
 		}
 	}

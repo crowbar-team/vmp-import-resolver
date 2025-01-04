@@ -60,16 +60,19 @@
     <ClCompile Include="signature_scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vmp.cpp">
+    <ClCompile Include="vmprotect\vmp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="x86\disassembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vmp_utilities.cpp">
+    <ClCompile Include="vmprotect\vmp_utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vmp_image.cpp">
+    <ClCompile Include="vmprotect\vmp_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vmprotect\vmp_iat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -122,16 +125,19 @@
     <ClInclude Include="signature_scanner.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmp.hpp">
+    <ClInclude Include="vmprotect\vmp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="x86\disassembler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmp_utilities.hpp">
+    <ClInclude Include="vmprotect\vmp_utilities.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmp_image.hpp">
+    <ClInclude Include="vmprotect\vmp_image.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vmprotect\vmp_iat.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

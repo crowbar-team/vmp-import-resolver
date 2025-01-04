@@ -4,10 +4,10 @@
 #include <vector>
 #include <utility>
 
-#include "x86/disassembler.hpp"
-#include "emulator/emulator.hpp"
+#include "../x86/disassembler.hpp"
+#include "../emulator/emulator.hpp"
 
-#include "portable_executable/image.hpp"
+#include "../portable_executable/image.hpp"
 
 namespace vmp
 {

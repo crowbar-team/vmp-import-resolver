@@ -1,11 +1,10 @@
 #include "vmp_utilities.hpp"
 #include "vmp.hpp"
 
-#include "signature_scanner.hpp"
-#include "vmp.hpp"
-#include "x86/disassembler.hpp"
+#include "../signature_scanner.hpp"
+#include "../x86/disassembler.hpp"
 
-std::vector<std::uintptr_t> vmp_utilities::scan_import_calls(std::uintptr_t text_base, const std::vector<std::uint8_t>& text_section)
+std::vector<std::uintptr_t> vmp::utilities::scan_import_calls(std::uintptr_t text_base, const std::vector<std::uint8_t>& text_section)
 {
 	std::vector<std::uintptr_t> import_calls = { };
 
