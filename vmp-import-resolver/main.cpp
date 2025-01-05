@@ -3,7 +3,11 @@
 #define FMT_UNICODE 0
 #include <spdlog/spdlog.h>
 
-#include "arg_parser.hpp"
+#include "config/arg_parser.hpp"
+#include "config/config.hpp"
+
+#include "utilities.hpp"
+
 #include "emulator/emulator.hpp"
 #include "win_process/win_process.hpp"
 
@@ -17,9 +21,7 @@
 
 std::int32_t main(const std::int32_t argc, const char** argv)
 {
-	const auto& arg_parser_ctx = arg_parser::parse(argc, argv);
-
-	const std::vector<std::string> secs = { ".8an", ".^|6", ".jy)" };
+	const auto& arg_parser_ctx = config::arg_parser::parse(argc, argv);
 
 	if (!arg_parser_ctx)
 	{
@@ -28,16 +30,38 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		return EXIT_FAILURE;
 	}
 
-	win_process_t win_process(arg_parser_ctx->process_id);
+	config::context_t config_ctx;
 
-	if (!win_process.attach())
+	try
 	{
-		spdlog::error("failed to attach to process id {}", arg_parser_ctx->process_id);
+		config_ctx = config::parse_toml(*arg_parser_ctx);
+	}
+	catch (std::exception& error)
+	{
+		spdlog::error(error.what());
 
 		return EXIT_FAILURE;
 	}
 
-	const auto& module = win_process.find_module(arg_parser_ctx->module_name);
+	const auto& process_id = utilities::find_process_id(config_ctx.process_name);
+
+	if (!process_id)
+	{
+		spdlog::error(process_id.error());
+
+		return EXIT_FAILURE;
+	}
+
+	win_process_t win_process(*process_id);
+
+	if (!win_process.attach())
+	{
+		spdlog::error("failed to attach to process id {}", *process_id);
+
+		return EXIT_FAILURE;
+	}
+
+	const auto& module = win_process.find_module(config_ctx.module_name);
 
 	if (!module)
 	{
@@ -78,9 +102,9 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 	{
 		vmp::construct_context(is_x64);
 
-		vmp::compute_sections(secs, module->address, image);
+		vmp::compute_sections(config_ctx.vmp_sections, module->address, image);
 	}
-	catch (std::runtime_error& error)
+	catch (std::exception& error)
 	{
 		spdlog::error(error.what());
 
@@ -117,7 +141,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		map_sections.emplace_back(address, temp_buffer);
 	}
 
-	for (const auto& vmp_section : secs)
+	for (const auto& vmp_section : config_ctx.vmp_sections)
 	{
 		const portable_executable::section_header_t* section_header = image->find_section(vmp_section);
 
@@ -147,7 +171,7 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 		vmp::map_sections(map_sections);
 		vmp::process_import_calls(import_calls, module->address);
 	}
-	catch (std::runtime_error& error)
+	catch (std::exception& error)
 	{
 		spdlog::error(error.what());
 
@@ -180,8 +204,6 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 			{
 				if (possible_import_va == export_va)
 				{
-					spdlog::info("resolved to {}", export_name);
-
 					iat.add_import(module_name, export_name);
 
 					found = true;
@@ -205,21 +227,12 @@ std::int32_t main(const std::int32_t argc, const char** argv)
 	try
 	{
 		vmp_image.initialize_memory_pe(module->size, &win_process);
-	}
-	catch (std::runtime_error& error)
-	{
-		spdlog::error(error.what());
 
-		return EXIT_FAILURE;
-	}
+		iat.reconstruct(&vmp_image, config_ctx.iat_section_name);
 
-	try
-	{
-		iat.reconstruct(&vmp_image);
-
-		vmp_image.dump_to_fs("C:\\Users\\rakitin\\Documents\\dumped_test.exe");
+		vmp_image.dump_to_fs(config_ctx.dump_path);
 	}
-	catch (std::runtime_error& error)
+	catch (std::exception& error)
 	{
 		spdlog::error(error.what());
 

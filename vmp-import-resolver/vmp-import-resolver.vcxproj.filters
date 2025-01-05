@@ -24,7 +24,7 @@
     <ClCompile Include="emulator\emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="arg_parser.cpp">
+    <ClCompile Include="config\arg_parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="portable_executable\data_directory.cpp">
@@ -78,6 +78,12 @@
     <ClCompile Include="vmprotect\vmp_pe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="config\config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="win_process\win_process.hpp">
@@ -86,7 +92,7 @@
     <ClInclude Include="emulator\emulator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="arg_parser.hpp">
+    <ClInclude Include="config\arg_parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="portable_executable\data_directory.hpp">
@@ -144,6 +150,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vmprotect\vmp_pe.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config\config.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

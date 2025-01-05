@@ -182,7 +182,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="arg_parser.cpp" />
+    <ClCompile Include="config\arg_parser.cpp" />
+    <ClCompile Include="config\config.cpp" />
+    <ClCompile Include="utilities.cpp" />
     <ClCompile Include="emulator\emulator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="portable_executable\data_directory.cpp" />
@@ -205,7 +207,9 @@
     <ClCompile Include="x86\disassembler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="arg_parser.hpp" />
+    <ClInclude Include="config\arg_parser.hpp" />
+    <ClInclude Include="config\config.hpp" />
+    <ClInclude Include="utilities.hpp" />
     <ClInclude Include="emulator\emulator.hpp" />
     <ClInclude Include="portable_executable\data_directory.hpp" />
     <ClInclude Include="portable_executable\dos_header.hpp" />

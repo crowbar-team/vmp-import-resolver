@@ -1,9 +1,10 @@
 {
   "dependencies": [
+    "argparse",
+    "asmjit",
     "spdlog",
     "unicorn",
     "zydis",
-    "argparse",
-    "asmjit"
+    "tomlplusplus"
   ]
 }

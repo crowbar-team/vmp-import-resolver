@@ -22,6 +22,6 @@ namespace vmp
 
 		void add_import(const std::string& module_name, const std::string& function_name);
 
-		void reconstruct(image_t* image);
+		void reconstruct(image_t* image, std::string_view iat_section_name);
 	};
 }

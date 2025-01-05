@@ -23,7 +23,7 @@ void vmp::iat_t::add_import(const std::string& module_name, const std::string& f
 	}
 }
 
-void vmp::iat_t::reconstruct(image_t* image)
+void vmp::iat_t::reconstruct(image_t* image, std::string_view iat_section_name)
 {
 	const auto new_section_va = image->compute_new_section_va();
 
@@ -98,7 +98,7 @@ void vmp::iat_t::reconstruct(image_t* image)
 	section_characteristics.cnt_init_data = 1;
 	section_characteristics.mem_read = 1;
 
-	const auto section = image->add_section(".iat", section_size, section_characteristics);
+	const auto section = image->add_section(iat_section_name, section_size, section_characteristics);
 
 	if (!section)
 	{
