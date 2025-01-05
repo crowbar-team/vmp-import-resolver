@@ -6,23 +6,29 @@
 
 namespace vmp::pe
 {
-    struct module_name_t
+    class module_name_t
     {
-        std::string name;
+        std::string m_name;
+
+    public:
+        explicit module_name_t(std::string_view name);
 
         [[nodiscard]] std::vector<std::uint8_t> bytes() const;
     };
 
-    struct named_import_t
+    class named_import_t
     {
-        std::uint16_t hint;
-        std::string name;
+        std::uint16_t m_hint;
+        std::string m_name;
+
+    public:
+        explicit named_import_t(std::string_view name);
 
         [[nodiscard]] std::vector<std::uint8_t> bytes() const;
     };
 
     // only named imports supported right now
-    struct thunk_data_x64_t
+    class thunk_data_x64_t
     {
         union
         {
@@ -30,29 +36,33 @@ namespace vmp::pe
             std::uint64_t function;
             std::uint64_t address;
 
-        	struct
+        	struct  // NOLINT(clang-diagnostic-nested-anon-types)
             {
-                std::uint64_t ordinal : 16;
-                std::uint64_t _reserved0 : 47;
-                std::uint64_t is_ordinal : 1;
+	            // ReSharper disable once CppInconsistentNaming
+	            std::uint64_t ordinal : 16;
+	            // ReSharper disable once CppInconsistentNaming
+	            std::uint64_t _reserved0 : 47;
+	            // ReSharper disable once CppInconsistentNaming
+	            std::uint64_t is_ordinal : 1;
             };
         };
+
+    public:
+        explicit thunk_data_x64_t(std::uint64_t address);
 
         [[nodiscard]] std::vector<std::uint8_t> bytes() const;
     };
 
-    struct import_descriptor_t
+    class import_descriptor_t
     {
-        union
-        {
-            std::uint32_t characteristics;
-            std::uint32_t rva_original_first_thunk;
-        };
+        std::uint32_t m_rva_original_first_thunk;  // NOLINT(clang-diagnostic-unused-private-field)
+        std::uint32_t m_time_date_stamp = 0;  // NOLINT(clang-diagnostic-unused-private-field)
+        std::uint32_t m_forwarder_chain = 0;  // NOLINT(clang-diagnostic-unused-private-field)
+        std::uint32_t m_rva_name;  // NOLINT(clang-diagnostic-unused-private-field)
+        std::uint32_t m_rva_first_thunk;  // NOLINT(clang-diagnostic-unused-private-field)
 
-        std::uint32_t timedate_stamp;
-        std::uint32_t forwarder_chain;
-        std::uint32_t rva_name;
-        std::uint32_t rva_first_thunk;
+    public:
+        explicit import_descriptor_t(std::uint32_t thunk_rva, std::uint32_t name_rva);
 
         [[nodiscard]] std::vector<std::uint8_t> bytes() const;
     };

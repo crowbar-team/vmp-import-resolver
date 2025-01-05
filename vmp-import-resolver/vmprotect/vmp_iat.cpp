@@ -38,7 +38,7 @@ void vmp::iat_t::reconstruct(image_t* image)
 	{
 		for (const auto& import : imports)
 		{
-			named_imports.emplace_back(0, import);
+			named_imports.emplace_back(import);
 		}
 	}
 
@@ -56,19 +56,16 @@ void vmp::iat_t::reconstruct(image_t* image)
 
 		module_names.emplace_back(module_name);
 
-		for (const auto& import : imports)
+		for ([[maybe_unused]] const auto& import : imports)
 		{
 			const std::uint64_t named_import_rva = named_imports_rvas[name_index];
 
 			name_index++;
 
-			pe::thunk_data_x64_t thunk_data = { };
-			thunk_data.address = named_import_rva;
-
-			import_thunks.emplace_back(thunk_data);
+			import_thunks.emplace_back(named_import_rva);
 		}
 
-		import_thunks.emplace_back();
+		import_thunks.emplace_back(0);
 	}
 
 	auto [module_names_serialized, module_names_rvas, module_names_end] = utilities::serialize_table(module_names, named_imports_end);
@@ -76,20 +73,16 @@ void vmp::iat_t::reconstruct(image_t* image)
 
 	std::vector<pe::import_descriptor_t> import_descriptors;
 
-	std::size_t index2 = 0;
+	std::size_t names_index = 0;
 
 	for (const auto& index : first_thunk_indices)
 	{
 		const auto thunk_rva = static_cast<std::uint32_t>(import_thunks_rvas[index]);
-		const auto name_rva = static_cast<std::uint32_t>(module_names_rvas[index2]);
+		const auto name_rva = static_cast<std::uint32_t>(module_names_rvas[names_index]);
 
-		pe::import_descriptor_t import_descriptor = { };
-		import_descriptor.rva_name = name_rva;
-		import_descriptor.rva_original_first_thunk = thunk_rva;
-		import_descriptor.rva_first_thunk = thunk_rva;
+		import_descriptors.emplace_back(thunk_rva, name_rva);
 
-		import_descriptors.push_back(import_descriptor);
-		index2++;
+		names_index++;
 	}
 
 	auto [import_descriptors_serialized, import_descriptors_rvas, import_descriptors_end] = utilities::serialize_table(import_descriptors, import_thunks_end);
