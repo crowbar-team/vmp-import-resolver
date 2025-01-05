@@ -1,0 +1,13 @@
+[process_information]
+process_name = "project3.vmp.exe"
+module_name = "project3.vmp.exe"
+
+[vmprotect]
+sections = [ ".8an", ".^|6", ".jy)" ]
+
+[new_sections]
+iat = ".iat"
+stub = ".stub"
+
+[dump]
+path = "A:\\dump.exe"
